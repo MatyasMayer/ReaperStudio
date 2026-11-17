@@ -9,8 +9,8 @@
 </p>
 
 <p align="center">
-  A modern lighting studio for the <b>CZC Gaming Reaper</b> keyboard: per-key effects,
-  reactive typing, and lighting that changes with the time of day or the game you're playing.
+  A modern lighting studio for your keyboard and mouse: per-key effects, reactive typing,
+  a mouse that matches your keys, and lighting that changes with the time of day or the game you're playing.
 </p>
 
 <p align="center">
@@ -19,9 +19,10 @@
 
 ---
 
-The keyboard ships with a dated Windows tool that can only pick one effect at a time. Reaper Studio
-replaces it. It talks to the keyboard directly over USB, using a protocol reverse-engineered from the
-original software and documented in [`docs/keyboard/PROTOCOL.md`](docs/keyboard/PROTOCOL.md).
+Each device ships with its own vendor tool: the keyboard's is dated and can only pick one effect at a
+time, and the mouse needs a separate app. Reaper Studio replaces both and drives them together from one
+set of profiles and rules. It talks to each device directly over USB, using protocols taken from the
+original software and documented per device (see [Supported devices](#supported-devices)).
 
 ## Features
 
@@ -44,6 +45,13 @@ With *Live preview* on, the keyboard shows your edits as you make them.
 
 ![Lighting page](docs/images/lighting.png)
 
+### Mouse
+Below the keyboard, each profile decides what the mouse shows: follow the keyboard, its own colours
+(per zone, or one effect over the whole mouse), or nothing at all. The cable and wireless can each have
+their own look and brightness.
+
+![Mouse editor](docs/images/mouse.png)
+
 ### Rules
 Rule types have a fixed priority: **app focused → app running → time of day**. Within one type,
 rules are checked top to bottom and the first match wins. When nothing matches, the default profile is used.
@@ -53,14 +61,27 @@ rules are checked top to bottom and the first match wins. When nothing matches, 
 ### Settings
 ![Settings page](docs/images/settings.png)
 
-## Other keyboards
-Reaper Studio is only tested on the CZC Gaming Reaper. The Reaper is a rebadged
-Royal Kludge RK98, so other Royal Kludge RGB boards (RK98, RK100, RK96, RK71, …)
-likely speak the same protocol, but they are **not supported yet**: their key
-layouts differ, and writing to an untested keyboard can brick it.
+## Supported devices
+
+| Device | Type | USB VID:PID | Status | Protocol |
+|---|---|---|---|---|
+| CZC Gaming Reaper | keyboard | `258A:00C1` | tested | [`docs/keyboard/PROTOCOL.md`](docs/keyboard/PROTOCOL.md) |
+| Glorious Model D Wireless | mouse | `258A:2012` (cable), `258A:2023` (dongle) | tested | [`docs/mouse/PROTOCOL.md`](docs/mouse/PROTOCOL.md) |
+
+Reaper Studio drives one keyboard and one mouse at a time. Either can be missing; the other keeps working.
+
+**Other keyboards.** The Reaper is a rebadged Royal Kludge RK98, so other Royal Kludge RGB boards
+(RK98, RK100, RK96, RK71, …) likely speak the same protocol, but they are **not supported yet**: their
+key layouts differ, and writing to an untested keyboard can brick it.
 See [docs/keyboard/compatible-keyboards.md](docs/keyboard/compatible-keyboards.md)
-for the evidence and what adding a model would take. If you own one of these
-boards and want to help, open an issue with its USB VID:PID.
+for the evidence and what adding a model would take.
+
+**Other mice.** Glorious Core drives these mice with the same code and the same HID interface as the
+Model D Wireless: Model O / O- / D- Wireless, Model O / D Pro Wireless, Model O 2 Pro and D 2 Pro
+(including the 4k/8kHz editions) and Series One Pro Wireless. They likely work, but their LED zones
+may differ and they are **not enabled yet**.
+
+If you own one of these devices and want to help, open an issue with its USB VID:PID.
 
 ## Getting started
 
@@ -105,6 +126,13 @@ Use **Quit** in the tray menu to exit. Settings live in `%APPDATA%\ReaperStudio\
                                   HID feature report 0x0A, 62-byte chunks, 2 ms apart
                                                             ▼
                                                  CZC Gaming Reaper (258A:00C1)
+
+ active profile ──► mouse thread: mouse settings → effect + brightness commands
+                    (only when something changed, only the commands that differ)
+                                                            ▼
+                         HID feature report 0x00, acknowledged, retried while asleep
+                                                            ▼
+                         Glorious Model D Wireless (258A:2012 cable / 258A:2023 dongle)
 ```
 
 - **Keyboard effects** are selected once; the firmware animates them.
