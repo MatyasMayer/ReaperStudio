@@ -44,8 +44,8 @@ With *Live preview* on, the keyboard shows your edits as you make them.
 ![Lighting page](docs/images/lighting.png)
 
 ### Rules
-Rules are checked top to bottom and the first match wins. When nothing matches, the default
-profile is used.
+Rule types have a fixed priority: **app focused → app running → time of day**. Within one type,
+rules are checked top to bottom and the first match wins. When nothing matches, the default profile is used.
 
 ![Rules page](docs/images/rules.png)
 

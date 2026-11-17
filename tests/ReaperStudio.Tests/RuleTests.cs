@@ -42,16 +42,42 @@ public class RuleTests
     }
 
     [Fact]
-    public void FirstMatchingRuleWins_AndDisabledRulesAreSkipped()
+    public void AppRulesBeatScheduleRules_AndDisabledRulesAreSkipped()
     {
         var game = new Rule { Name = "game", Trigger = RuleTrigger.AppFocused, Apps = ["cs2.exe"] };
         var night = new Rule { Name = "night", Trigger = RuleTrigger.Schedule, From = new(0, 0), To = new(0, 0) };
         var ctx = new RuleContext(Mon(23), "CS2", NoApps);
 
         Assert.Same(game, RuleEngine.FirstMatch([game, night], ctx));
-        Assert.Same(night, RuleEngine.FirstMatch([night, game], ctx));
+        Assert.Same(game, RuleEngine.FirstMatch([night, game], ctx));
+        Assert.Same(night, RuleEngine.FirstMatch([night, game], new RuleContext(Mon(23), "explorer", NoApps)));
         game.Enabled = false;
         Assert.Same(night, RuleEngine.FirstMatch([game, night], ctx));
+    }
+
+    [Fact]
+    public void Priority_FocusedThenRunningThenSchedule()
+    {
+        var night = new Rule { Name = "night", Trigger = RuleTrigger.Schedule, From = new(0, 0), To = new(0, 0) };
+        var discord = new Rule { Name = "discord", Trigger = RuleTrigger.AppRunning, Apps = ["Discord"] };
+        var game = new Rule { Name = "game", Trigger = RuleTrigger.AppFocused, Apps = ["cs2"] };
+        var running = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "discord", "cs2" };
+
+        Assert.Same(game, RuleEngine.FirstMatch([night, discord, game], new RuleContext(Mon(23), "cs2", running)));
+        Assert.Same(discord, RuleEngine.FirstMatch([night, discord, game], new RuleContext(Mon(23), "explorer", running)));
+        Assert.Same(night, RuleEngine.FirstMatch([night, discord, game], new RuleContext(Mon(23), "explorer", NoApps)));
+    }
+
+    [Fact]
+    public void SameTrigger_ListOrderWins()
+    {
+        var a = new Rule { Name = "a", Trigger = RuleTrigger.AppRunning, Apps = ["Discord"] };
+        var b = new Rule { Name = "b", Trigger = RuleTrigger.AppRunning, Apps = ["Spotify"] };
+        var running = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "discord", "spotify" };
+        var ctx = new RuleContext(Mon(12), "explorer", running);
+
+        Assert.Same(a, RuleEngine.FirstMatch([a, b], ctx));
+        Assert.Same(b, RuleEngine.FirstMatch([b, a], ctx));
     }
 
     [Fact]
