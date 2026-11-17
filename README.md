@@ -21,7 +21,7 @@
 
 The keyboard ships with a dated Windows tool that can only pick one effect at a time. Reaper Studio
 replaces it. It talks to the keyboard directly over USB, using a protocol reverse-engineered from the
-original software and documented in [`docs/PROTOCOL.md`](docs/PROTOCOL.md).
+original software and documented in [`docs/keyboard/PROTOCOL.md`](docs/keyboard/PROTOCOL.md).
 
 ## Features
 
@@ -33,6 +33,7 @@ original software and documented in [`docs/PROTOCOL.md`](docs/PROTOCOL.md).
 | ⌨️ **Keyboard effects** | All 21 effects built into the firmware, with speed, brightness, colour and direction. They keep running even when the app is closed. |
 | ⏱ **Rules** | Switch profiles automatically by time of day and weekday (windows can cross midnight), when a game is focused, or while an app is running. |
 | 💾 **Save to keyboard** | Store a snapshot of a profile in the keyboard's own memory. |
+| 🖱️ **Mouse** | A Glorious Model D Wireless follows the keyboard's colours, or gets its own look per profile: each of its three zones (wheel, left and right stripe) solid or breathing, or one of its built-in effects over the whole mouse. A different look and brightness on the cable than on wireless. |
 | 🧩 **Stays out of the way** | Lives in the system tray, can start with Windows, and keeps everything in one JSON file. |
 
 ## Screenshots
@@ -57,13 +58,14 @@ Reaper Studio is only tested on the CZC Gaming Reaper. The Reaper is a rebadged
 Royal Kludge RK98, so other Royal Kludge RGB boards (RK98, RK100, RK96, RK71, …)
 likely speak the same protocol, but they are **not supported yet**: their key
 layouts differ, and writing to an untested keyboard can brick it.
-See [docs/research/compatible-keyboards.md](docs/research/compatible-keyboards.md)
+See [docs/keyboard/compatible-keyboards.md](docs/keyboard/compatible-keyboards.md)
 for the evidence and what adding a model would take. If you own one of these
 boards and want to help, open an issue with its USB VID:PID.
 
 ## Getting started
 
 **Requirements:** Windows 10 (1803+) or 11 and a CZC Gaming Reaper (USB `258A:00C1`).
+Optional: a Glorious Model D Wireless mouse (USB `258A:2012` on the cable, `258A:2023` via its dongle).
 
 **Download:** grab `ReaperStudio-v*-win-x64.zip` from the
 [latest release](https://github.com/MatyasMayer/ReaperStudio/releases/latest), unzip it and run
@@ -83,6 +85,7 @@ dotnet build ReaperStudio.sln -c Release
 > [!IMPORTANT]
 > Close the original CZC app (`DeviceDriver.exe`) first. Both apps write to the same interface and
 > would fight over the lighting. Reaper Studio shows a warning while the original is running.
+> The same goes for **Glorious Core** if you let Reaper Studio control the mouse.
 
 Closing the window keeps Reaper Studio running in the tray, so rules and app effects keep working.
 Use **Quit** in the tray menu to exit. Settings live in `%APPDATA%\ReaperStudio\config.json`.
@@ -108,17 +111,27 @@ Use **Quit** in the tray menu to exit. Settings live in `%APPDATA%\ReaperStudio\
 - **App effects** are rendered by `EffectRenderer` and streamed as real-time frames. If the stream
   stops, the keyboard falls back to its stored effect.
 - The firmware needs a short pause between packets. Without it, a write occasionally hangs for 5 s.
-  See the measurements in [`docs/PROTOCOL.md`](docs/PROTOCOL.md#transport-fun_0040fe80).
+  See the measurements in [`docs/keyboard/PROTOCOL.md`](docs/keyboard/PROTOCOL.md#transport-fun_0040fe80).
+- **The mouse** has no real-time mode: every lighting command is stored in the mouse's memory. So
+  Reaper Studio only writes to it when the active profile or its mouse settings change, waits until
+  a slider stops moving, sends only the commands that differ, and retries when the mouse is asleep.
+  This runs on its own thread, so the mouse never slows down the keyboard stream. The protocol comes
+  from the Glorious Core app; see [`docs/mouse/PROTOCOL.md`](docs/mouse/PROTOCOL.md).
 
 ## Project layout
 
 | Path | What |
 |---|---|
-| `src/ReaperStudio.Core` | HID transport, protocol messages, key layout, effect renderer, rule engine, config |
-| `src/ReaperStudio` | WPF app: UI, tray icon, keyboard hook for reactive effects |
-| `tests/ReaperStudio.Tests` | protocol bytes checked against captures of the original app, rule logic |
-| `docs/PROTOCOL.md` | the reverse-engineered USB protocol |
-| `tools/` | Python research tools: device probe, Frida HID sniffer, capture decoder, minimal driver, pacing benchmark |
+| `src/ReaperStudio.Core/Keyboard` | Reaper keyboard: HID device, protocol messages, key layout |
+| `src/ReaperStudio.Core/Mouse` | Model D mouse: HID device, protocol messages, profile → commands, sync thread |
+| `src/ReaperStudio.Core` (rest) | shared: HID enumeration, colours, effect renderer, profiles, rules, engine, config |
+| `src/ReaperStudio/Views/Keyboard`, `Views/Mouse` | on-screen keyboard; mouse editor and preview |
+| `src/ReaperStudio` (rest) | WPF app: main window, tray icon, shared controls, keyboard hook for reactive effects |
+| `tests/ReaperStudio.Tests` | keyboard and mouse protocol bytes checked against the vendor apps, mouse targets, rule logic |
+| `docs/keyboard/` | keyboard USB protocol (`PROTOCOL.md`) and compatible-keyboards research |
+| `docs/mouse/` | Glorious Model D Wireless USB protocol (`PROTOCOL.md`) |
+| `tools/keyboard/` | Python research tools: device probe, Frida HID sniffer, capture decoder, minimal driver, pacing benchmark |
+| `tools/mouse/` | minimal Python driver for the Glorious Model D Wireless |
 
 ```powershell
 dotnet test   # run the test suite
@@ -128,7 +141,7 @@ dotnet test   # run the test suite
 
 | Environment variable | Effect |
 |---|---|
-| `REAPERSTUDIO_TRACE=C:\path\trace.log` | logs every keyboard write with timing; summarise with `python tools/trace_stats.py trace.log` |
+| `REAPERSTUDIO_TRACE=C:\path\trace.log` | logs every keyboard and mouse write with timing; summarise with `python tools/keyboard/trace_stats.py trace.log` |
 | `REAPERSTUDIO_CONFIG_DIR=C:\some\dir` | uses a different config folder (handy for testing) |
 
 ## Privacy
@@ -138,6 +151,6 @@ matching key. Nothing you type is logged, stored or sent anywhere.
 
 ## Disclaimer
 
-An independent project, not affiliated with or endorsed by CZC.cz or the keyboard's manufacturer.
+An independent project, not affiliated with or endorsed by CZC.cz, Glorious or the devices' manufacturers.
 It only changes lighting through the same commands the official software uses, and never touches
-the keyboard's firmware. Use it at your own risk.
+the keyboard's or the mouse's firmware. Use it at your own risk.

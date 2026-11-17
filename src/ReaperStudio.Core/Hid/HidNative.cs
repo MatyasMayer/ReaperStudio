@@ -30,6 +30,7 @@ internal static partial class HidNative
 
     [DllImport("hid.dll")] public static extern void HidD_GetHidGuid(out Guid guid);
     [DllImport("hid.dll", SetLastError = true)] public static extern bool HidD_SetFeature(SafeFileHandle h, byte[] buf, int len);
+    [DllImport("hid.dll", SetLastError = true)] public static extern bool HidD_GetFeature(SafeFileHandle h, byte[] buf, int len);
     [DllImport("hid.dll")] public static extern bool HidD_GetPreparsedData(SafeFileHandle h, out nint data);
     [DllImport("hid.dll")] public static extern bool HidD_FreePreparsedData(nint data);
     [DllImport("hid.dll")] public static extern int HidP_GetCaps(nint data, ref HidpCaps caps);

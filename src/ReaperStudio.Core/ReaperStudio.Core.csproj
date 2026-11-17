@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="layout.json" LogicalName="ReaperStudio.Core.layout.json" />
+    <EmbeddedResource Include="Keyboard/layout.json" LogicalName="ReaperStudio.Core.layout.json" />
   </ItemGroup>
 
 </Project>

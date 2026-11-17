@@ -1,4 +1,4 @@
-using ReaperStudio.Core.Layout;
+using ReaperStudio.Core.Keyboard;
 using ReaperStudio.Core.Lighting;
 using ReaperStudio.Core.Profiles;
 

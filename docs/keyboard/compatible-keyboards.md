@@ -53,7 +53,7 @@ Research note, 2026-11-17. Repository state: `main` at `1f688b9`. No code was ch
 | USB VID / PID | `0x258A` / `0x00C1` | `src/ReaperStudio.Core/Hid/ReaperKeyboard.cs:21` |
 | Match method | HID interface path must contain `vid_258a&pid_00c1` (case-insensitive) | `ReaperKeyboard.cs:45-48` |
 | Collection filter | `HidP_GetCaps`: `UsagePage 0xFF00`, `Usage 1`, `FeatureReportByteLength 65`, probed with a zero-access handle | `ReaperKeyboard.cs:49-55` |
-| Interface | `MI_01`, Windows collection `COL05` (confirmed live on this PC, below) | `docs/PROTOCOL.md:13` |
+| Interface | `MI_01`, Windows collection `COL05` (confirmed live on this PC, below) | `docs/keyboard/PROTOCOL.md:13` |
 | Open mode | read/write, share read+write, write only (no read-back ever) | `ReaperKeyboard.cs:56-58`, `PROTOCOL.md:16-17` |
 | Report ID / size | `0x0A`, 65 bytes via `HidD_SetFeature` | `ReaperKeyboard.cs:22, 74, 81` |
 
@@ -255,7 +255,7 @@ Core/Devices/
 Core/Layout/
   KeyboardLayout.Load(layoutId)   layouts/<id>.json, generated from vendor KB.ini
   KeyId                           model-neutral key identity (name or HID usage) for painting
-tools/kbini2layout.py     Dev/<PID>/KB.ini -> layouts/<id>.json + devices.json entry
+tools/keyboard/kbini2layout.py     Dev/<PID>/KB.ini -> layouts/<id>.json + devices.json entry
 ```
 
 The engine takes a `DeviceCatalog`, owns one `EffectRenderer` per attached layout, and exposes the capability flags to the UI. The renderer already iterates `layout.Keys` and writes `frame[key.Led]`, so it needs no algorithm change.
@@ -266,7 +266,7 @@ The engine takes a `DeviceCatalog`, owns one `EffectRenderer` per attached layou
 |---|---|---|---|---|
 | **1. Profile record for the Reaper only** (pure refactor, no behaviour change) | S (0.5-1 d) | Add `DeviceProfile`; move VID/PID, `LedCount`, layout name, effect table and `Supports*` rules into a `00C1` profile; rename `ReaperKeyboard` → `RkkbKeyboard(profile)`; pass the profile into `LightingEngine` instead of `KeyboardLayout.Reaper` | `ReaperKeyboard.cs:19-23, 45, 53`; `LightingEngine.cs:21, 31, 107`; `KeyboardLayout.cs:24-30`; `Messages.cs:6-51` | existing tests keep passing; add a `devices.json` parse test |
 | **2. Multi-PID detection with a fingerprint** | S (0.5 d) | `TryOpen(IEnumerable<DeviceProfile>)`: for every HID path, parse `vid/pid`, look up the profile, then require the profile's collection fingerprint (`0xFF00`, 1, 65, report ID `0x0A`) before opening for write. Report every match, not just the first. Never match on VID alone | `ReaperKeyboard.cs:43-62`, `HidNative.cs:146-180` | introduce an `IHidEnumerator` seam so detection is testable with fake descriptors, including a fake `0049` G5/1032-byte device that must be rejected |
-| **3. Layout generator + first extra layouts** | M (1-2 d) | `tools/kbini2layout.py` converts `[KEY]` `Kn=x1,y1,x2,y2,type,vk,0,led` rows (the format as seen in `Dev/00C1/KB.ini`; `PROTOCOL.md:104-108` documents the LED field) and `[OPT]` (`RGBKb`, `LayoutKeyNum`, `RGBIndex`, `LedOpt*`) into JSON. Ship `00D8` (identical map, free), `0173`, the RK100 family; later the 87/84/71/68/61 layouts. Derive from KB.ini you can legally obtain; **do not copy Rangoli's configs (GPL-3.0)**, and note the repo has no `LICENSE` file at this commit | new `layouts/*.json`, `ReaperStudio.Core.csproj:12` (embed a folder) | parameterised invariant test over every layout: unique LEDs, `0 <= led < LedCount`, every key has a non-zero VK, snapshot of Esc/W/Space LEDs |
+| **3. Layout generator + first extra layouts** | M (1-2 d) | `tools/keyboard/kbini2layout.py` converts `[KEY]` `Kn=x1,y1,x2,y2,type,vk,0,led` rows (the format as seen in `Dev/00C1/KB.ini`; `PROTOCOL.md:104-108` documents the LED field) and `[OPT]` (`RGBKb`, `LayoutKeyNum`, `RGBIndex`, `LedOpt*`) into JSON. Ship `00D8` (identical map, free), `0173`, the RK100 family; later the 87/84/71/68/61 layouts. Derive from KB.ini you can legally obtain; **do not copy Rangoli's configs (GPL-3.0)**, and note the repo has no `LICENSE` file at this commit | new `layouts/*.json`, `ReaperStudio.Core.csproj:12` (embed a folder) | parameterised invariant test over every layout: unique LEDs, `0 <= led < LedCount`, every key has a non-zero VK, snapshot of Esc/W/Space LEDs |
 | **4. Per-model capabilities and effect tables** | M (1 d) | Replace the three `Supports*` statics with `profile.Effects[id] = {name, speed, direction, colour, random, colornum}` (the `LedOptN` rows). Allow a profile to ship its own id→name list (4 RKKB profiles do). Make speed/brightness ranges profile data | `Messages.cs:6-51`, `MainWindow.xaml.cs:28-37, 68, 234-237`, `MainWindow.xaml:173-177` | table-driven test against `LedOpt` rows |
 | **5. Colour order** | S (0.5 d) | Apply `ColorOrder` in `WriteLeds` and in the `02 29` colour bytes (`m[6..8]`): `0,1,2` default, `1,0,2` for six profiles, `2,0,1` for one | `Messages.cs:66, 89-97` | golden vectors: same frame, three orders |
 | **6. Config: model awareness and portable paint** | M (1 d) | Add `DeviceId` to `AppConfig` (and optionally to `Profile`); store painted keys by `KeyId` (key name) instead of LED index so a profile paints "WASD" on any board; migrate old `Painted` (LED→key via the 00C1 layout). The default FPS profile's hardcoded LEDs 14/9/15/21 become key names | `Profile.cs:45`, `ConfigStore.cs:10-18, 41`, `EffectRenderer.cs:44-45`, `MainWindow.xaml.cs:309-332` | migration test; round-trip test |
@@ -290,7 +290,7 @@ Cheapest useful result: steps 1 + 2 + 3 (profile record, multi-PID detection, ge
 2. **Three verification levels in the profile** (`Confirmed`, `Likely`, `Untested`) shown in the UI. For anything below `Confirmed`, require an explicit "I understand this writes to my keyboard" opt-in.
 3. **Gate the flash-writing messages.** `03 7E` ("Save to keyboard") and `01 F8` (key matrix) write to flash. Reaper Studio uses only `03 7E`. On non-`Confirmed` models, allow only `02 29` (effect select) and `06 00` (volatile frames). There is no evidence either way on which message class bricked the RK84, so this is a precaution, not a diagnosis. **[G]**
 4. **No read-back exists**, so the app cannot verify the firmware. The only identity data is the PID, `bcdDevice` (the Reaper reports revision `2004`), the product string, and the descriptor. Log all four at connect time. **[V]**
-5. **Capture-first onboarding.** `tools/sniff.py` (Frida hook of the vendor app) already exists. A "contribute a profile" path that asks the user to capture three effects from the vendor app and compare them with `Messages.Effect` would turn "likely" into "confirmed" without a risky first write.
+5. **Capture-first onboarding.** `tools/keyboard/sniff.py` (Frida hook of the vendor app) already exists. A "contribute a profile" path that asks the user to capture three effects from the vendor app and compare them with `Messages.Effect` would turn "likely" into "confirmed" without a risky first write.
 6. **Keep the vendor-app warning** (`App.xaml.cs:122`). RK's app is also `DeviceDriver.exe`.
 
 ---
@@ -309,7 +309,7 @@ Cheapest useful result: steps 1 + 2 + 3 (profile record, multi-PID detection, ge
 
 ## 8. Sources
 
-**Repo and local evidence (all [V])**: `src/ReaperStudio.Core/**`, `src/ReaperStudio/**`, `tests/ReaperStudio.Tests/ProtocolTests.cs`, `docs/PROTOCOL.md`, `README.md`; `source/CZC.Gaming Reaper/{Cfg.ini, Dev/00C1/KB.ini, Dev/en/led.xml, DeviceDriver.exe}` (string table: PDB path, `CDev*` classes); Windows PnP read of the connected keyboard (VID/PID, revision, collections, product string).
+**Repo and local evidence (all [V])**: `src/ReaperStudio.Core/**`, `src/ReaperStudio/**`, `tests/ReaperStudio.Tests/ProtocolTests.cs`, `docs/keyboard/PROTOCOL.md`, `README.md`; `source/CZC.Gaming Reaper/{Cfg.ini, Dev/00C1/KB.ini, Dev/en/led.xml, DeviceDriver.exe}` (string table: PDB path, `CDev*` classes); Windows PnP read of the connected keyboard (VID/PID, revision, collections, product string).
 
 **Prior art and data**
 * RK software research and catalogs (188-profile `models.json`, driver-class map, static analysis of `DeviceDriver.exe`): <https://github.com/shubh-3011/rk-keyboard-software-research> ([`models.json`](https://github.com/shubh-3011/rk-keyboard-software-research/blob/main/models.json), [profile-to-family coverage](https://github.com/shubh-3011/rk-keyboard-software-research/blob/main/docs/rk-profile-family-protocol-coverage.md), [reverse-engineering.md](https://github.com/shubh-3011/rk-keyboard-software-research/blob/main/docs/reverse-engineering.md), [catalog CSV](https://github.com/shubh-3011/rk-keyboard-software-research/blob/main/docs/rk-drive-keyboard-catalog.csv))

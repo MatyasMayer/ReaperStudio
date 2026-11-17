@@ -2,14 +2,14 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
+using ReaperStudio.Core.Hid;
 using ReaperStudio.Core.Lighting;
-using ReaperStudio.Core.Protocol;
 
-namespace ReaperStudio.Core.Hid;
+namespace ReaperStudio.Core.Keyboard;
 
 /// <summary>
 /// The vendor control collection of the CZC Gaming Reaper (usage page 0xFF00, usage 1,
-/// 65-byte feature report). See docs/PROTOCOL.md.
+/// 65-byte feature report). See docs/keyboard/PROTOCOL.md.
 /// </summary>
 /// <remarks>
 /// The firmware needs a short pause after each packet. Sent back-to-back, it occasionally fails to

@@ -1,7 +1,7 @@
 """Minimal driver for the CZC Gaming Reaper (SinoWealth 258A:00C1, CDevRKKB protocol).
 
 Reverse-engineered from DeviceDriver.exe (CDevRKKB @ vtable 0x5b1a0c) and
-verified against captures of the official app. See docs/PROTOCOL.md.
+verified against captures of the official app. See docs/keyboard/PROTOCOL.md.
 """
 import ctypes as C
 import ctypes.wintypes as W

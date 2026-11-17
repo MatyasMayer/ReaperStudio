@@ -11,10 +11,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using ReaperStudio.Controls;
 using ReaperStudio.Core.Engine;
-using ReaperStudio.Core.Layout;
+using ReaperStudio.Core.Keyboard;
 using ReaperStudio.Core.Lighting;
+using ReaperStudio.Core.Mouse;
 using ReaperStudio.Core.Profiles;
-using ReaperStudio.Core.Protocol;
 using ReaperStudio.Core.Rules;
 using ReaperStudio.Core.Storage;
 
@@ -89,11 +89,18 @@ public partial class MainWindow : Window
 
         Engine.FrameRendered += OnFrame;
         Engine.StatusChanged += s => Dispatcher.BeginInvoke(() => OnStatus(s));
+        Engine.MouseStatusChanged += s => Dispatcher.BeginInvoke(() => OnMouseStatus(s));
+        if (Engine.MouseStatus is { } ms) OnMouseStatus(ms);
+        MouseEditor.Edited += ProfileEdited;
 
         ConfigPathText.Text = ConfigStore.FilePath;
         var version = typeof(App).Assembly.GetName().Version!;
         VersionText.Text = $"Reaper Studio v{version.Major}.{version.Minor}.{version.Build}";
-        _vendorCheck.Tick += (_, _) => VendorWarning.Visibility = App.IsVendorAppRunning() ? Visibility.Visible : Visibility.Collapsed;
+        _vendorCheck.Tick += (_, _) =>
+        {
+            VendorWarning.Visibility = App.IsVendorAppRunning() ? Visibility.Visible : Visibility.Collapsed;
+            GloriousWarning.Visibility = Cfg.MouseEnabled && App.IsGloriousCoreRunning() ? Visibility.Visible : Visibility.Collapsed;
+        };
         _vendorCheck.Start();
 
         IsVisibleChanged += (_, _) => UpdatePreview();
@@ -144,6 +151,15 @@ public partial class MainWindow : Window
         StatusFps.Text = s.Fps > 0 ? $"Streaming {s.Fps:0} fps" : "";
         PauseButton.Content = s.Paused ? "Resume lighting" : "Pause lighting";
         if (RulesPage.Visibility == Visibility.Visible) RefreshRuleMarkers();
+    }
+
+    private void OnMouseStatus(MouseStatus s)
+    {
+        MouseDot.Fill = (Brush)FindResource(s.Connected && !s.Waiting ? "Good" : "Warn");
+        MouseStatusText.Text = !s.Connected ? "Mouse not found" : s.Waiting ? "Mouse asleep" : "Mouse connected";
+        MouseStatusDetail.Text = !s.Connected ? ""
+            : (s.Link == MouseLink.Wired ? "Cable" : "Wireless") + (s.Battery is { } b ? $" · battery {b} %" + (s.Charging ? ", charging" : "") : "");
+        MouseEditor.SetStatus(s);
     }
 
     private void Pause_Click(object sender, RoutedEventArgs e) => Engine.Paused = !Engine.Paused;
@@ -206,6 +222,7 @@ public partial class MainWindow : Window
         HwColorful.IsChecked = hw.Colorful;
         HwColor.Color = hw.Color;
         SaveToKeyboardResult.Text = "";
+        MouseEditor.Show(p);
         _loading = false;
 
         UpdateEditorVisibility();
@@ -558,6 +575,7 @@ public partial class MainWindow : Window
         StartWithWindows.IsChecked = App.IsStartWithWindowsEnabled();
         StartMinimized.IsChecked = Cfg.StartMinimized;
         FrameRate.Value = Cfg.FrameRate;
+        MouseEnabled.IsChecked = Cfg.MouseEnabled;
         FrameRateText.Text = $"{Cfg.FrameRate} fps";
         _loading = false;
     }
@@ -568,6 +586,7 @@ public partial class MainWindow : Window
         App.SetStartWithWindows(StartWithWindows.IsChecked == true);
         Cfg.StartWithWindows = StartWithWindows.IsChecked == true;
         Cfg.StartMinimized = StartMinimized.IsChecked == true;
+        Cfg.MouseEnabled = MouseEnabled.IsChecked == true;
         AppRef.ConfigChanged();
     }
 
@@ -602,9 +621,10 @@ public partial class MainWindow : Window
     {
         Directory.CreateDirectory(dir);
         Show();
-        foreach (var (nav, name) in new[] { (NavLighting, "lighting"), (NavRules, "rules"), (NavSettings, "settings") })
+        foreach (var (nav, name) in new[] { (NavLighting, "lighting"), (NavLighting, "mouse"), (NavRules, "rules"), (NavSettings, "settings") })
         {
             nav.IsChecked = true;
+            if (name == "mouse") EditorScroll.ScrollToEnd();
             await Task.Delay(1200);
             UpdateLayout();
             var dpi = VisualTreeHelper.GetDpi(this);

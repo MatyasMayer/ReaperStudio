@@ -1,8 +1,8 @@
 """Log every HID feature report the official CZC app sends/receives.
 
-Usage: python tools/sniff.py            (attaches to running DeviceDriver.exe,
+Usage: python tools/keyboard/sniff.py            (attaches to running DeviceDriver.exe,
                                           or spawns it if not running)
-Output goes to stdout and tools/captures/<timestamp>.log
+Output goes to stdout and tools/keyboard/captures/<timestamp>.log
 Each line: direction, length, hex bytes. Only observes; never alters data.
 """
 import datetime

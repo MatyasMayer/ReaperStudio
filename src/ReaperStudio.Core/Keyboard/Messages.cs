@@ -1,6 +1,6 @@
 using ReaperStudio.Core.Lighting;
 
-namespace ReaperStudio.Core.Protocol;
+namespace ReaperStudio.Core.Keyboard;
 
 /// <summary>Built-in effects stored in the keyboard firmware (message 02 29, byte 2).</summary>
 public enum EffectMode : byte

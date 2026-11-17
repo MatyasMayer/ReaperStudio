@@ -2,8 +2,8 @@
 
 Reverse-engineered from the vendor app `DeviceDriver.exe` (sha256 `2cc34bca…4799`,
 driver class `CDevRKKB`, vtable `0x5b1a0c`) with REA/Ghidra, then confirmed by
-hooking `hid.dll` in the running vendor app (`tools/sniff.py`) and by driving the
-keyboard directly (`tools/rkkb.py`).
+hooking `hid.dll` in the running vendor app (`tools/keyboard/sniff.py`) and by driving the
+keyboard directly (`tools/keyboard/rkkb.py`).
 
 ## Device
 
@@ -31,7 +31,7 @@ byte 3..64 payload       62 bytes (last packet zero-padded)
 **Pace the packets.** The firmware needs a short pause after each packet. Sent back-to-back
 (~4 ms apart), it occasionally fails to acknowledge one, and `HidD_SetFeature` then blocks for the
 5 s USB timeout. The write cannot be cancelled: HID completes it synchronously even on an overlapped
-handle, and `CancelIoEx` has no effect. Measured stall rates (`tools/pacetest.py`):
+handle, and `CancelIoEx` has no effect. Measured stall rates (`tools/keyboard/pacetest.py`):
 
 | gap after each packet | stalls | max real-time fps |
 |---|---|---|

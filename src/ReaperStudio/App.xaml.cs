@@ -117,9 +117,15 @@ public partial class App : Application
         Shutdown();
     }
 
-    public static bool IsVendorAppRunning()
+    /// <summary>The original CZC keyboard app.</summary>
+    public static bool IsVendorAppRunning() => IsRunning("DeviceDriver");
+
+    /// <summary>The Glorious mouse app, which drives the same mouse interface.</summary>
+    public static bool IsGloriousCoreRunning() => IsRunning("Glorious Core");
+
+    private static bool IsRunning(string processName)
     {
-        var procs = Process.GetProcessesByName("DeviceDriver");
+        var procs = Process.GetProcessesByName(processName);
         foreach (var p in procs) p.Dispose();
         return procs.Length > 0;
     }

@@ -2,6 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:c="clr-namespace:ReaperStudio.Controls"
+        xmlns:kb="clr-namespace:ReaperStudio.Views.Keyboard"
+        xmlns:ms="clr-namespace:ReaperStudio.Views.Mouse"
         Title="Reaper Studio" Width="1280" Height="820" MinWidth="1060" MinHeight="640"
         Background="{StaticResource Bg}" WindowStartupLocation="CenterScreen" Icon="Assets/app.ico">
     <Grid Background="{StaticResource Bg}">
@@ -34,12 +36,21 @@
                         <TextBlock x:Name="StatusProfile" Style="{StaticResource Muted}" Margin="0,8,0,0" />
                         <TextBlock x:Name="StatusRule" Style="{StaticResource Muted}" />
                         <TextBlock x:Name="StatusFps" Style="{StaticResource Muted}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Ellipse x:Name="MouseDot" Width="9" Height="9" Fill="{StaticResource Warn}" VerticalAlignment="Center" />
+                            <TextBlock x:Name="MouseStatusText" Text="Looking for mouse…" Margin="8,0,0,0" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <TextBlock x:Name="MouseStatusDetail" Style="{StaticResource Muted}" Margin="0,4,0,0" />
                         <Button x:Name="PauseButton" Content="Pause lighting" Margin="0,10,0,0" Click="Pause_Click" />
                     </StackPanel>
                 </Border>
                 <Border x:Name="VendorWarning" DockPanel.Dock="Bottom" Background="#33FFB547" CornerRadius="8" Padding="10" Margin="0,0,0,10" Visibility="Collapsed">
                     <TextBlock Style="{StaticResource Muted}" Foreground="{StaticResource Warn}"
                                Text="The original CZC app (DeviceDriver.exe) is running. Close it so the two apps don't fight over the lighting." />
+                </Border>
+                <Border x:Name="GloriousWarning" DockPanel.Dock="Bottom" Background="#33FFB547" CornerRadius="8" Padding="10" Margin="0,0,0,10" Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource Muted}" Foreground="{StaticResource Warn}"
+                               Text="Glorious Core is running. Close it so the two apps don't fight over the mouse lighting." />
                 </Border>
                 <Grid />
             </DockPanel>
@@ -100,7 +111,7 @@
                     <TextBlock x:Name="KindHint" Style="{StaticResource Muted}" Margin="2,8,0,12" />
 
                     <Border Style="{StaticResource CardBorder}" Padding="14">
-                        <c:KeyboardView x:Name="KeyboardPreview" Height="300" />
+                        <kb:KeyboardView x:Name="KeyboardPreview" Height="300" />
                     </Border>
 
                     <!-- Software editor -->
@@ -187,6 +198,9 @@
                             </StackPanel>
                         </Border>
                     </Grid>
+
+                    <!-- Mouse editor -->
+                    <ms:MouseEditor x:Name="MouseEditor" Margin="0,14,0,0" />
                 </StackPanel>
             </ScrollViewer>
         </Grid>
@@ -302,6 +316,14 @@
                 </Border>
                 <Border Style="{StaticResource CardBorder}" Margin="0,14,0,0">
                     <StackPanel>
+                        <TextBlock Text="Mouse" Style="{StaticResource H2}" />
+                        <CheckBox x:Name="MouseEnabled" Content="Control the Glorious Model D Wireless lighting" Margin="0,10,0,0" Click="Settings_Changed" />
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,8,0,0"
+                                   Text="Each profile decides what the mouse shows (Lighting page, below the keyboard). The mouse stores every change in its own memory, so Reaper Studio only writes when something actually changes. Untick to leave the mouse alone completely." />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" Margin="0,14,0,0">
+                    <StackPanel>
                         <TextBlock Text="Data" Style="{StaticResource H2}" />
                         <TextBlock x:Name="ConfigPathText" Style="{StaticResource Muted}" Margin="0,6,0,10" />
                         <StackPanel Orientation="Horizontal">
@@ -315,7 +337,7 @@
                         <TextBlock Text="About" Style="{StaticResource H2}" />
                         <TextBlock x:Name="VersionText" Margin="0,6,0,0" FontWeight="SemiBold" />
                         <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
-                                   Text="Reaper Studio talks to the keyboard (USB 258A:00C1) directly through its vendor HID interface, using the protocol reverse-engineered from the original CZC software. See docs/PROTOCOL.md." />
+                                   Text="Reaper Studio talks to the keyboard (USB 258A:00C1) directly through its vendor HID interface, using the protocol reverse-engineered from the original CZC software (docs/keyboard/PROTOCOL.md), and to the Glorious Model D Wireless (USB 258A:2012 cable, 258A:2023 dongle) using the protocol from Glorious Core (docs/mouse/PROTOCOL.md)." />
                     </StackPanel>
                 </Border>
             </StackPanel>
