@@ -83,9 +83,9 @@ Use **Quit** in the tray menu to exit. Settings live in `%APPDATA%\ReaperStudio\
 ```
  ┌──────────────┐   rules: time / focused app / running app   ┌─────────────────┐
  │  Rule engine │ ──────────────────────────────────────────► │  active profile │
- └──────────────┘                                              └────────┬────────┘
-                                   keyboard effect │                    │ app effect
-                                                   ▼                    ▼
+ └──────────────┘                                             └────────┬────────┘
+                                   keyboard effect │                   │ app effect
+                                                   ▼                   ▼
                                       02 29 (select firmware   render 126 LEDs → 06 00 frame
                                        effect once)             streamed ~22× per second
                                                    └────────┬───────────┘
