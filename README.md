@@ -52,6 +52,15 @@ rules are checked top to bottom and the first match wins. When nothing matches, 
 ### Settings
 ![Settings page](docs/images/settings.png)
 
+## Other keyboards
+Reaper Studio is only tested on the CZC Gaming Reaper. The Reaper is a rebadged
+Royal Kludge RK98, so other Royal Kludge RGB boards (RK98, RK100, RK96, RK71, …)
+likely speak the same protocol, but they are **not supported yet**: their key
+layouts differ, and writing to an untested keyboard can brick it.
+See [docs/research/compatible-keyboards.md](docs/research/compatible-keyboards.md)
+for the evidence and what adding a model would take. If you own one of these
+boards and want to help, open an issue with its USB VID:PID.
+
 ## Getting started
 
 **Requirements:** Windows 10 (1803+) or 11 and a CZC Gaming Reaper (USB `258A:00C1`).
