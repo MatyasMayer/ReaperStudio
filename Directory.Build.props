@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- Single source of the app version. Release tags are v<Version>. -->
+    <Version>0.1.0</Version>
+    <Authors>Matyáš Mayer</Authors>
+    <Copyright>© 2026 Matyáš Mayer</Copyright>
+  </PropertyGroup>
+</Project>

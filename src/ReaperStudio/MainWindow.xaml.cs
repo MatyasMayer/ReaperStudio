@@ -91,6 +91,8 @@ public partial class MainWindow : Window
         Engine.StatusChanged += s => Dispatcher.BeginInvoke(() => OnStatus(s));
 
         ConfigPathText.Text = ConfigStore.FilePath;
+        var version = typeof(App).Assembly.GetName().Version!;
+        VersionText.Text = $"Reaper Studio v{version.Major}.{version.Minor}.{version.Build}";
         _vendorCheck.Tick += (_, _) => VendorWarning.Visibility = App.IsVendorAppRunning() ? Visibility.Visible : Visibility.Collapsed;
         _vendorCheck.Start();
 

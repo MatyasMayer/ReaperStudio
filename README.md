@@ -5,6 +5,10 @@
 <h1 align="center">Reaper Studio</h1>
 
 <p align="center">
+  <a href="https://github.com/MatyasMayer/ReaperStudio/actions/workflows/build.yml"><img src="https://github.com/MatyasMayer/ReaperStudio/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+</p>
+
+<p align="center">
   A modern lighting studio for the <b>CZC Gaming Reaper</b> keyboard: per-key effects,
   reactive typing, and lighting that changes with the time of day or the game you're playing.
 </p>
@@ -50,8 +54,15 @@ profile is used.
 
 ## Getting started
 
-**Requirements:** Windows 10 (1803+) or 11, the [.NET 10 SDK](https://dotnet.microsoft.com/download), and a
-CZC Gaming Reaper (USB `258A:00C1`).
+**Requirements:** Windows 10 (1803+) or 11 and a CZC Gaming Reaper (USB `258A:00C1`).
+
+**Download:** grab `ReaperStudio-v*-win-x64.zip` from the
+[latest release](https://github.com/MatyasMayer/ReaperStudio/releases/latest), unzip it and run
+`ReaperStudio.exe`. It needs the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0).
+Builds of every push to `main` are also available as artifacts of the
+[Build workflow](https://github.com/MatyasMayer/ReaperStudio/actions/workflows/build.yml).
+
+**Build from source** with the [.NET 10 SDK](https://dotnet.microsoft.com/download):
 
 ```powershell
 git clone https://github.com/MatyasMayer/ReaperStudio.git

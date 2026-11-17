@@ -313,6 +313,7 @@
                 <Border Style="{StaticResource CardBorder}" Margin="0,14,0,0">
                     <StackPanel>
                         <TextBlock Text="About" Style="{StaticResource H2}" />
+                        <TextBlock x:Name="VersionText" Margin="0,6,0,0" FontWeight="SemiBold" />
                         <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
                                    Text="Reaper Studio talks to the keyboard (USB 258A:00C1) directly through its vendor HID interface, using the protocol reverse-engineered from the original CZC software. See docs/PROTOCOL.md." />
                     </StackPanel>
