@@ -18,6 +18,12 @@ public static class MouseTarget
 {
     public static readonly MouseZone[] Zones = [MouseZone.Wheel, MouseZone.Left, MouseZone.Right];
 
+    /// <summary>
+    /// Speed encoded for effects that do not move (solid, off), so a speed change does not alter their
+    /// bytes and rewrite the mouse's flash for nothing. The vendor app's default slider value.
+    /// </summary>
+    public const int FixedSpeed = 60;
+
     /// <summary>The look for <paramref name="link"/>, or null when the profile leaves the mouse alone.</summary>
     public static MouseTargetLook? Resolve(Profile profile, MouseLink link)
     {
@@ -29,7 +35,7 @@ public static class MouseTarget
             case MouseSource.Custom:
                 return new(m.LookFor(link), m.WiredBrightness, m.WirelessBrightness);
             default:
-                var (look, level) = FromKeyboard(profile);
+                if (FromKeyboard(profile) is not (var look, var level)) return null;
                 return new(look, m.WiredBrightness * level / 100, m.WirelessBrightness * level / 100);
         }
     }
@@ -48,20 +54,21 @@ public static class MouseTarget
                 MouseEffectMode.SeamlessBreathing => [new Rgb(255, 0, 0)], // what the vendor app sends
                 _ => [],
             };
-            list.Add(new("fx", MouseMessages.Effect(hwProfile, MouseZone.All, look.WholeEffect, colors, look.Speed)));
+            int speed = MouseLook.UsesSpeed(look.WholeEffect) ? look.Speed : FixedSpeed;
+            list.Add(new("fx", MouseMessages.Effect(hwProfile, MouseZone.All, look.WholeEffect, colors, speed)));
         }
         else
         {
             foreach (var zone in Zones)
             {
                 var z = look[zone];
-                var (mode, colors) = z.Effect switch
+                var (mode, colors, speed) = z.Effect switch
                 {
-                    ZoneEffect.Solid => (MouseEffectMode.SingleColor, new[] { z.Color }),
-                    ZoneEffect.Breathing => (MouseEffectMode.BreathingSingleColor, new[] { z.Color }),
-                    _ => (MouseEffectMode.Off, Array.Empty<Rgb>()),
+                    ZoneEffect.Solid => (MouseEffectMode.SingleColor, new[] { z.Color }, FixedSpeed),
+                    ZoneEffect.Breathing => (MouseEffectMode.BreathingSingleColor, new[] { z.Color }, look.Speed),
+                    _ => (MouseEffectMode.Off, Array.Empty<Rgb>(), FixedSpeed),
                 };
-                list.Add(new($"fx{(int)zone}", MouseMessages.Effect(hwProfile, zone, mode, colors, look.Speed)));
+                list.Add(new($"fx{(int)zone}", MouseMessages.Effect(hwProfile, zone, mode, colors, speed)));
             }
         }
         list.Add(new("brightness-wired", MouseMessages.Brightness(MouseLink.Wired, target.WiredBrightness)));
@@ -101,15 +108,20 @@ public static class MouseTarget
         return 0.08 + 0.92 * c * c;
     }
 
-    /// <summary>A mouse look that matches the keyboard lighting, plus a brightness factor 0..100 %.</summary>
-    public static (MouseLook Look, int Level) FromKeyboard(Profile p)
+    /// <summary>
+    /// A mouse look that matches the keyboard lighting, plus a brightness factor 0..100 %; or null when
+    /// there is no match, so the mouse is left alone. That is the keyboard's hardware Customize mode:
+    /// its per-key colours live in the keyboard's flash and the profile does not know them.
+    /// </summary>
+    public static (MouseLook Look, int Level)? FromKeyboard(Profile p)
     {
         if (p.Kind == ProfileKind.Hardware)
         {
             var hw = p.Hardware;
+            if (hw.Mode == EffectMode.Customize) return null;
             int level = Math.Clamp(hw.Brightness, 0, 5) * 20;
             int speed = Math.Clamp(hw.Speed, 1, 5) * 20;
-            if (hw.Colorful || !HardwareEffect.SupportsColor(hw.Mode) || hw.Mode == EffectMode.Customize)
+            if (hw.Colorful || !HardwareEffect.SupportsColor(hw.Mode))
                 return (Whole(MouseEffectMode.Glorious, speed), level);
             return (AllZones(hw.Mode == EffectMode.Breathing ? ZoneEffect.Breathing : ZoneEffect.Solid, hw.Color, speed), level);
         }

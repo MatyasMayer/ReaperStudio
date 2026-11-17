@@ -137,6 +137,58 @@ public class MouseTargetTests
     }
 
     [Fact]
+    public void Follow_HardwareCustomize_LeavesMouseUnchanged()
+    {
+        var p = new Profile { Kind = ProfileKind.Hardware, Hardware = new HardwareEffect { Mode = EffectMode.Customize } };
+        Assert.Null(MouseTarget.FromKeyboard(p));
+        Assert.Null(MouseTarget.Resolve(p, MouseLink.Wired));
+        Assert.Null(MouseTarget.Resolve(p, MouseLink.Wireless));
+    }
+
+    private static List<MouseCommand> ZoneCommands(ZoneEffect effect, int speed)
+    {
+        var look = new MouseLook
+        {
+            Speed = speed,
+            Wheel = new() { Effect = effect },
+            Left = new() { Effect = effect },
+            Right = new() { Effect = effect },
+        };
+        return MouseTarget.Commands(MouseTarget.Resolve(Custom(look), MouseLink.Wired)!, 1);
+    }
+
+    [Theory]
+    [InlineData(ZoneEffect.Solid)]
+    [InlineData(ZoneEffect.Off)]
+    public void StillZones_IgnoreSpeed(ZoneEffect effect)
+    {
+        var slow = ZoneCommands(effect, 0);
+        var fast = ZoneCommands(effect, 100);
+        Assert.All(slow.Zip(fast), p => Assert.True(p.First.SameAs(p.Second), p.First.Slot));
+        Assert.Equal(MouseMessages.RawSpeed(MouseEffectMode.SingleColor, MouseTarget.FixedSpeed), slow[0].Bytes[10]);
+    }
+
+    [Fact]
+    public void BreathingZones_UseSpeed()
+    {
+        var slow = ZoneCommands(ZoneEffect.Breathing, 0);
+        var fast = ZoneCommands(ZoneEffect.Breathing, 100);
+        for (int i = 0; i < MouseTarget.Zones.Length; i++) Assert.False(slow[i].SameAs(fast[i]));
+    }
+
+    [Theory]
+    [InlineData(MouseEffectMode.SingleColor, false)]
+    [InlineData(MouseEffectMode.Off, false)]
+    [InlineData(MouseEffectMode.BreathingSingleColor, true)]
+    [InlineData(MouseEffectMode.Glorious, true)]
+    public void WholeMouse_UsesSpeedOnlyWhenTheEffectMoves(MouseEffectMode effect, bool changes)
+    {
+        MouseCommand Fx(int speed) => MouseTarget.Commands(MouseTarget.Resolve(
+            Custom(new MouseLook { Mode = MouseLookMode.WholeMouse, WholeEffect = effect, Speed = speed }), MouseLink.Wired)!, 1)[0];
+        Assert.Equal(changes, !Fx(0).SameAs(Fx(100)));
+    }
+
+    [Fact]
     public void Follow_ScalesBrightnessWithProfile()
     {
         var p = new Profile { Brightness = 50, Software = new() { Base = BaseEffect.Solid } };

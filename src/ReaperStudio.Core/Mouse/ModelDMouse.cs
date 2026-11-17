@@ -62,30 +62,37 @@ public sealed class ModelDMouse : IDisposable
 
     /// <summary>Sends a command and returns the reply status. Retries a few times while the firmware is busy or fails.</summary>
     /// <exception cref="Win32Exception">The device failed, e.g. it was unplugged.</exception>
-    public MouseReply Send(byte[] command)
-    {
-        for (int attempt = 0; ; attempt++)
-        {
-            var reply = Exchange(command, WriteDelay);
-            var status = (MouseReply)reply[0];
-            if (status is not (MouseReply.Busy or MouseReply.Failed) || attempt == 3) return status;
-            Thread.Sleep(40); // as the vendor app
-        }
-    }
+    public MouseReply Send(byte[] command) => (MouseReply)ExchangeWithRetry(command, WriteDelay)[0];
 
     /// <summary>Active hardware profile 1..3, or null when the mouse does not answer.</summary>
+    /// <exception cref="Win32Exception">The device failed, e.g. it was unplugged.</exception>
     public int? ActiveProfile()
     {
-        var r = Exchange(MouseMessages.QueryProfile(), QueryDelay);
+        var r = ExchangeWithRetry(MouseMessages.QueryProfile(), QueryDelay);
         return (MouseReply)r[0] == MouseReply.Ok && r[6] is >= 1 and <= 3 ? r[6] : null;
     }
 
     /// <summary>Battery percent and charging flag, or null when the mouse does not answer.</summary>
+    /// <exception cref="Win32Exception">The device failed, e.g. it was unplugged.</exception>
     public (int Percent, bool Charging)? Battery()
     {
-        var r = Exchange(MouseMessages.QueryBattery(), QueryDelay);
+        var r = ExchangeWithRetry(MouseMessages.QueryBattery(), QueryDelay);
         if ((MouseReply)r[0] != MouseReply.Ok || r[5] != 0x83) return null;
         return (Math.Max((int)r[7], 1), r[6] != 0);
+    }
+
+    /// <summary>
+    /// <see cref="Exchange"/>, repeated up to 3 more times 40 ms apart while the reply is Busy or Failed
+    /// (as the vendor app). Returns the last reply, whatever its status.
+    /// </summary>
+    private byte[] ExchangeWithRetry(byte[] command, TimeSpan delay)
+    {
+        for (int attempt = 0; ; attempt++)
+        {
+            var reply = Exchange(command, delay);
+            if ((MouseReply)reply[0] is not (MouseReply.Busy or MouseReply.Failed) || attempt == 3) return reply;
+            Thread.Sleep(40);
+        }
     }
 
     /// <summary>Writes report 0 + <paramref name="command"/>, waits, reads the reply (report ID stripped).</summary>

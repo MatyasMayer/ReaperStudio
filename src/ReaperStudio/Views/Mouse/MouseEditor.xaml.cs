@@ -93,7 +93,7 @@ public partial class MouseEditor : UserControl
         LinkTabs.Visibility = m.SeparateWireless ? Visibility.Visible : Visibility.Collapsed;
         SourceHint.Text = source switch
         {
-            MouseSource.FollowKeyboard => "Matches the keyboard: same colour, breathing or rainbow. Updated whenever the profile changes, not every frame.",
+            MouseSource.FollowKeyboard => "Matches the keyboard: same colour, breathing or rainbow. Updated whenever the profile changes, not every frame. A keyboard in Customize mode leaves the mouse unchanged.",
             MouseSource.Custom => "Set the mouse yourself.",
             _ => "Reaper Studio won't touch the mouse while this profile is active.",
         };
@@ -135,7 +135,7 @@ public partial class MouseEditor : UserControl
     private MouseLook? PreviewLook() => _profile switch
     {
         { Mouse.Source: MouseSource.Custom } => EditedLook,
-        { Mouse.Source: MouseSource.FollowKeyboard } p => MouseTarget.FromKeyboard(p).Look,
+        { Mouse.Source: MouseSource.FollowKeyboard } p => MouseTarget.FromKeyboard(p)?.Look,
         _ => null,
     };
 
