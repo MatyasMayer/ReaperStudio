@@ -1,0 +1,323 @@
+﻿<Window x:Class="ReaperStudio.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:ReaperStudio.Controls"
+        Title="Reaper Studio" Width="1280" Height="820" MinWidth="1060" MinHeight="640"
+        Background="{StaticResource Bg}" WindowStartupLocation="CenterScreen" Icon="Assets/app.ico">
+    <Grid Background="{StaticResource Bg}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Background="{StaticResource Panel}" Padding="14,18">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="6,0,0,24">
+                    <Image Source="Assets/app.ico" Width="30" Height="30" />
+                    <StackPanel Margin="10,0,0,0">
+                        <TextBlock Text="Reaper Studio" FontSize="16" FontWeight="SemiBold" />
+                        <TextBlock Text="CZC Gaming Reaper" Style="{StaticResource Muted}" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Top">
+                    <RadioButton x:Name="NavLighting" Style="{StaticResource NavButton}" GroupName="nav" IsChecked="True" Checked="Nav_Checked" Content="💡  Lighting" />
+                    <RadioButton x:Name="NavRules" Style="{StaticResource NavButton}" GroupName="nav" Checked="Nav_Checked" Content="⏱  Rules" />
+                    <RadioButton x:Name="NavSettings" Style="{StaticResource NavButton}" GroupName="nav" Checked="Nav_Checked" Content="⚙  Settings" />
+                </StackPanel>
+                <Border DockPanel.Dock="Bottom" Style="{StaticResource CardBorder}" Padding="12" VerticalAlignment="Bottom">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse x:Name="StatusDot" Width="9" Height="9" Fill="{StaticResource Warn}" VerticalAlignment="Center" />
+                            <TextBlock x:Name="StatusText" Text="Looking for keyboard…" Margin="8,0,0,0" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <TextBlock x:Name="StatusProfile" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                        <TextBlock x:Name="StatusRule" Style="{StaticResource Muted}" />
+                        <TextBlock x:Name="StatusFps" Style="{StaticResource Muted}" />
+                        <Button x:Name="PauseButton" Content="Pause lighting" Margin="0,10,0,0" Click="Pause_Click" />
+                    </StackPanel>
+                </Border>
+                <Border x:Name="VendorWarning" DockPanel.Dock="Bottom" Background="#33FFB547" CornerRadius="8" Padding="10" Margin="0,0,0,10" Visibility="Collapsed">
+                    <TextBlock Style="{StaticResource Muted}" Foreground="{StaticResource Warn}"
+                               Text="The original CZC app (DeviceDriver.exe) is running. Close it so the two apps don't fight over the lighting." />
+                </Border>
+                <Grid />
+            </DockPanel>
+        </Border>
+
+        <!-- ===================== Lighting page ===================== -->
+        <Grid x:Name="LightingPage" Grid.Column="1" Margin="22,18,22,18">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="270" />
+                <ColumnDefinition Width="22" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                    <TextBlock Text="Profiles" Style="{StaticResource H1}" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource IconButton}" Content="＋" ToolTip="New profile" Click="NewProfile_Click" />
+                        <Button Style="{StaticResource IconButton}" Content="⧉" ToolTip="Duplicate" Margin="6,0,0,0" Click="DuplicateProfile_Click" />
+                        <Button Style="{StaticResource IconButton}" Content="🗑" ToolTip="Delete" Margin="6,0,0,0" Click="DeleteProfile_Click" />
+                    </StackPanel>
+                </DockPanel>
+                <ListBox x:Name="ProfileList" Style="{StaticResource CardList}" SelectionChanged="ProfileList_SelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <DockPanel>
+                                    <Border DockPanel.Dock="Right" Background="{StaticResource Accent}" CornerRadius="4" Padding="6,1" VerticalAlignment="Center"
+                                            Visibility="{Binding IsDefault, Converter={x:Static c:Converters.BoolToVisibility}}">
+                                        <TextBlock Text="DEFAULT" FontSize="9" FontWeight="Bold" Foreground="White" />
+                                    </Border>
+                                    <TextBlock Text="{Binding Profile.Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                </DockPanel>
+                                <TextBlock Text="{Binding Profile.Summary}" Style="{StaticResource Muted}" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <ScrollViewer x:Name="EditorScroll" Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="Editor">
+                    <DockPanel Margin="0,0,0,12">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <CheckBox x:Name="LivePreview" Content="Live preview on keyboard" IsChecked="True" Checked="LivePreview_Changed" Unchecked="LivePreview_Changed" Margin="0,0,14,0" />
+                            <Button x:Name="SetDefaultButton" Content="Set as default" Click="SetDefault_Click" />
+                        </StackPanel>
+                        <TextBox x:Name="ProfileName" FontSize="18" FontWeight="SemiBold" MaxWidth="420" HorizontalAlignment="Left" MinWidth="260"
+                                 TextChanged="ProfileName_TextChanged" />
+                    </DockPanel>
+
+                    <Border Background="{StaticResource Card}" CornerRadius="8" HorizontalAlignment="Left" Padding="2">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="KindSoftware" Style="{StaticResource Segment}" GroupName="kind" Content="App effect" Checked="Kind_Checked" />
+                            <RadioButton x:Name="KindHardware" Style="{StaticResource Segment}" GroupName="kind" Content="Keyboard effect" Checked="Kind_Checked" />
+                        </StackPanel>
+                    </Border>
+                    <TextBlock x:Name="KindHint" Style="{StaticResource Muted}" Margin="2,8,0,12" />
+
+                    <Border Style="{StaticResource CardBorder}" Padding="14">
+                        <c:KeyboardView x:Name="KeyboardPreview" Height="300" />
+                    </Border>
+
+                    <!-- Software editor -->
+                    <Grid x:Name="SoftwareEditor" Margin="0,14,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Style="{StaticResource CardBorder}">
+                            <StackPanel>
+                                <TextBlock Text="Base effect" Style="{StaticResource H2}" />
+                                <ComboBox x:Name="BaseEffectBox" Margin="0,10,0,0" SelectionChanged="SoftwareParam_Changed" />
+                                <StackPanel x:Name="ColorSlotRow" Orientation="Horizontal" Margin="0,12,0,8">
+                                    <RadioButton x:Name="Color1Slot" Style="{StaticResource Segment}" GroupName="slot" Content="Color 1" IsChecked="True" Checked="ColorSlot_Checked" />
+                                    <RadioButton x:Name="Color2Slot" Style="{StaticResource Segment}" GroupName="slot" Content="Color 2" Checked="ColorSlot_Checked" />
+                                </StackPanel>
+                                <c:ColorPicker x:Name="BaseColor" />
+                                <TextBlock Text="Speed" Style="{StaticResource Label}" />
+                                <Slider x:Name="SpeedSlider" Minimum="0.1" Maximum="3" ValueChanged="SoftwareParam_Changed" />
+                                <TextBlock x:Name="AngleLabel" Text="Direction" Style="{StaticResource Label}" />
+                                <Slider x:Name="AngleSlider" Minimum="0" Maximum="359" ValueChanged="SoftwareParam_Changed" />
+                                <TextBlock Text="Brightness" Style="{StaticResource Label}" />
+                                <Slider x:Name="BrightnessSlider" Minimum="0" Maximum="100" ValueChanged="SoftwareParam_Changed" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                            <StackPanel>
+                                <TextBlock Text="Paint keys" Style="{StaticResource H2}" />
+                                <TextBlock Style="{StaticResource Muted}" Margin="0,4,0,10"
+                                           Text="Left-click or drag over keys to paint. Right-click to erase. Painted keys sit on top of the base effect." />
+                                <c:ColorPicker x:Name="PaintColor" />
+                                <WrapPanel Margin="0,8,0,0">
+                                    <Button Content="Clear painted" Margin="0,0,6,6" Click="ClearPainted_Click" />
+                                    <Button Content="Paint all keys" Margin="0,0,6,6" Click="PaintAll_Click" />
+                                </WrapPanel>
+                                <Button Style="{StaticResource AccentButton}" Content="Save to keyboard" Margin="0,6,0,0" Click="SaveToKeyboard_Click"
+                                        ToolTip="Stores a snapshot of this profile in the keyboard itself (Customize mode), so it shows even when Reaper Studio isn't running." />
+                                <TextBlock x:Name="SaveToKeyboardResult" Style="{StaticResource Muted}" Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="4" Style="{StaticResource CardBorder}">
+                            <StackPanel>
+                                <TextBlock Text="Reactive typing" Style="{StaticResource H2}" />
+                                <TextBlock Style="{StaticResource Muted}" Margin="0,4,0,10" Text="Keys react when you press them." />
+                                <ComboBox x:Name="ReactiveBox" SelectionChanged="SoftwareParam_Changed" />
+                                <CheckBox x:Name="ReactiveRainbow" Content="Random colour per press" Margin="0,12,0,10" Checked="SoftwareParam_Changed" Unchecked="SoftwareParam_Changed" />
+                                <c:ColorPicker x:Name="ReactiveColor" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Hardware editor -->
+                    <Grid x:Name="HardwareEditor" Margin="0,14,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="14" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource CardBorder}">
+                            <StackPanel>
+                                <TextBlock Text="Built-in effect" Style="{StaticResource H2}" />
+                                <ComboBox x:Name="HwModeBox" Margin="0,10,0,0" SelectionChanged="HardwareParam_Changed" />
+                                <TextBlock x:Name="HwSpeedLabel" Text="Speed" Style="{StaticResource Label}" />
+                                <Slider x:Name="HwSpeed" Minimum="1" Maximum="5" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="HardwareParam_Changed" />
+                                <TextBlock Text="Brightness" Style="{StaticResource Label}" />
+                                <Slider x:Name="HwBrightness" Minimum="0" Maximum="5" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="HardwareParam_Changed" />
+                                <TextBlock x:Name="HwDirectionLabel" Text="Direction / variant" Style="{StaticResource Label}" />
+                                <Slider x:Name="HwDirection" Minimum="1" Maximum="5" IsSnapToTickEnabled="True" TickFrequency="1" ValueChanged="HardwareParam_Changed" />
+                                <TextBlock Style="{StaticResource Muted}" Margin="0,14,0,0"
+                                           Text="Keyboard effects run inside the keyboard itself, so they keep working with Reaper Studio closed. The preview above is only an approximation." />
+                            </StackPanel>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                            <StackPanel x:Name="HwColorPanel">
+                                <TextBlock Text="Colour" Style="{StaticResource H2}" />
+                                <CheckBox x:Name="HwColorful" Content="Rainbow colours" Margin="0,10,0,12" Checked="HardwareParam_Changed" Unchecked="HardwareParam_Changed" />
+                                <c:ColorPicker x:Name="HwColor" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- ===================== Rules page ===================== -->
+        <Grid x:Name="RulesPage" Grid.Column="1" Margin="22,18,22,18" Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="340" />
+                <ColumnDefinition Width="22" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <TextBlock Text="Rules" Style="{StaticResource H1}" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource IconButton}" Content="＋" ToolTip="New rule" Click="NewRule_Click" />
+                        <Button Style="{StaticResource IconButton}" Content="▲" ToolTip="Higher priority" Margin="6,0,0,0" Click="RuleUp_Click" />
+                        <Button Style="{StaticResource IconButton}" Content="▼" ToolTip="Lower priority" Margin="6,0,0,0" Click="RuleDown_Click" />
+                        <Button Style="{StaticResource IconButton}" Content="🗑" ToolTip="Delete" Margin="6,0,0,0" Click="DeleteRule_Click" />
+                    </StackPanel>
+                </DockPanel>
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource Muted}" Margin="0,0,0,12"
+                           Text="Checked top to bottom. The first rule that matches picks the profile. When none match, the default profile is used." />
+                <ListBox x:Name="RuleList" Style="{StaticResource CardList}" SelectionChanged="RuleList_SelectionChanged">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel>
+                                <CheckBox DockPanel.Dock="Right" IsChecked="{Binding Rule.Enabled}" VerticalAlignment="Center" Click="RuleEnabled_Click" ToolTip="Enabled" />
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="8" Height="8" Fill="{StaticResource Good}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                 Visibility="{Binding IsActive, Converter={x:Static c:Converters.BoolToVisibility}}" />
+                                        <TextBlock Text="{Binding Rule.Name}" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Rule.Summary}" Style="{StaticResource Muted}" Margin="0,3,0,0" />
+                                    <TextBlock Text="{Binding ProfileName}" Style="{StaticResource Muted}" Foreground="{StaticResource Accent}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <Border x:Name="RuleEditor" Grid.Column="2" Style="{StaticResource CardBorder}" VerticalAlignment="Top" Padding="22">
+                <StackPanel>
+                    <TextBlock Text="Name" Style="{StaticResource Label}" Margin="0,0,0,4" />
+                    <TextBox x:Name="RuleName" TextChanged="RuleField_Changed" />
+
+                    <TextBlock Text="When" Style="{StaticResource Label}" />
+                    <Border Background="{StaticResource Panel}" CornerRadius="8" HorizontalAlignment="Left" Padding="2">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="TrigSchedule" Style="{StaticResource Segment}" GroupName="trig" Content="Time of day" Checked="RuleField_Changed" />
+                            <RadioButton x:Name="TrigFocused" Style="{StaticResource Segment}" GroupName="trig" Content="App is focused" Checked="RuleField_Changed" />
+                            <RadioButton x:Name="TrigRunning" Style="{StaticResource Segment}" GroupName="trig" Content="App is running" Checked="RuleField_Changed" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel x:Name="SchedulePanel">
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                            <StackPanel>
+                                <TextBlock Text="From" Style="{StaticResource Label}" Margin="0,0,0,4" />
+                                <TextBox x:Name="RuleFrom" Width="90" LostKeyboardFocus="RuleTime_LostFocus" />
+                            </StackPanel>
+                            <StackPanel Margin="14,0,0,0">
+                                <TextBlock Text="To" Style="{StaticResource Label}" Margin="0,0,0,4" />
+                                <TextBox x:Name="RuleTo" Width="90" LostKeyboardFocus="RuleTime_LostFocus" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Muted}" VerticalAlignment="Bottom" Margin="14,0,0,8" Text="24-hour, e.g. 22:30. Can cross midnight." />
+                        </StackPanel>
+                        <TextBlock Text="Days" Style="{StaticResource Label}" />
+                        <StackPanel x:Name="DayToggles" Orientation="Horizontal" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="AppsPanel">
+                        <TextBlock Text="Apps / games (process names, comma separated)" Style="{StaticResource Label}" Margin="0,14,0,4" />
+                        <TextBox x:Name="RuleApps" LostKeyboardFocus="RuleApps_LostFocus" />
+                        <DockPanel Margin="0,8,0,0">
+                            <Button DockPanel.Dock="Right" Content="Add" Margin="8,0,0,0" Click="AddRunningApp_Click" />
+                            <Button DockPanel.Dock="Right" Content="↻" Style="{StaticResource IconButton}" Margin="8,0,0,0" ToolTip="Refresh list" Click="RefreshApps_Click" />
+                            <ComboBox x:Name="RunningApps" />
+                        </DockPanel>
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0" Text="Tip: start the game, then pick it from the list of apps that currently have a window." />
+                    </StackPanel>
+
+                    <TextBlock Text="Use profile" Style="{StaticResource Label}" Margin="0,16,0,4" />
+                    <ComboBox x:Name="RuleProfile" DisplayMemberPath="Name" SelectionChanged="RuleField_Changed" />
+                </StackPanel>
+            </Border>
+            <TextBlock x:Name="NoRuleHint" Grid.Column="2" Style="{StaticResource Muted}" Text="Add a rule with ＋ to switch lighting by time of day or by game." Visibility="Collapsed" />
+        </Grid>
+
+        <!-- ===================== Settings page ===================== -->
+        <ScrollViewer x:Name="SettingsPage" Grid.Column="1" Margin="22,18,22,18" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="720" HorizontalAlignment="Left">
+                <TextBlock Text="Settings" Style="{StaticResource H1}" Margin="0,0,0,16" />
+                <Border Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <CheckBox x:Name="StartWithWindows" Content="Start Reaper Studio when Windows starts" Click="Settings_Changed" />
+                        <CheckBox x:Name="StartMinimized" Content="Start minimized to the tray" Margin="0,12,0,0" Click="Settings_Changed" />
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,12,0,0"
+                                   Text="Closing the window keeps Reaper Studio running in the tray so rules and app effects keep working. Use the tray icon menu to quit." />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Animation frame rate" Style="{StaticResource H2}" />
+                        <DockPanel Margin="0,10,0,0">
+                            <TextBlock x:Name="FrameRateText" DockPanel.Dock="Right" Width="60" TextAlignment="Right" />
+                            <Slider x:Name="FrameRate" Minimum="10" Maximum="30" IsSnapToTickEnabled="True" TickFrequency="5" ValueChanged="FrameRate_Changed" />
+                        </DockPanel>
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,8,0,0" Text="Higher is smoother. The keyboard needs a short pause between packets, so about 22 fps is the real maximum. The original app used about 11." />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Data" Style="{StaticResource H2}" />
+                        <TextBlock x:Name="ConfigPathText" Style="{StaticResource Muted}" Margin="0,6,0,10" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Open config folder" Click="OpenConfigFolder_Click" />
+                            <Button Content="Restore example profiles" Margin="8,0,0,0" Click="ResetConfig_Click" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" Margin="0,14,0,0">
+                    <StackPanel>
+                        <TextBlock Text="About" Style="{StaticResource H2}" />
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,6,0,0"
+                                   Text="Reaper Studio talks to the keyboard (USB 258A:00C1) directly through its vendor HID interface, using the protocol reverse-engineered from the original CZC software. See docs/PROTOCOL.md." />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Window>

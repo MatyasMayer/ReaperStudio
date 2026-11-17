@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+*.user
+
+# Vendor installer and installed files (proprietary, used only as RE input)
+source/
+
+# HID captures of the vendor app
+tools/captures/
+__pycache__/
