@@ -172,6 +172,19 @@ dotnet test   # run the test suite
 | `REAPERSTUDIO_TRACE=C:\path\trace.log` | logs every keyboard and mouse write with timing; summarise with `python tools/keyboard/trace_stats.py trace.log` |
 | `REAPERSTUDIO_CONFIG_DIR=C:\some\dir` | uses a different config folder (handy for testing) |
 
+## How it was built
+
+Reaper Studio is built with AI assistance:
+
+- **[REA](https://github.com/morluto/rea)** for the reverse engineering: disassembling the CZC keyboard app and reading the Glorious Core app.
+- **[Matt Pocock's skills](https://github.com/mattpocock/skills)** for the workflow: planning sessions, code review, issues.
+
+Nothing about the hardware is guessed:
+
+- Both protocols come from the vendor apps (captured traffic for the keyboard, Glorious Core's own code for the mouse), and the core commands were tried on real devices before the app used them.
+- The tests compare the bytes Reaper Studio sends with the original apps' commands.
+- The protocol docs ([keyboard](docs/keyboard/PROTOCOL.md), [mouse](docs/mouse/PROTOCOL.md)) mark what is verified and what is still open.
+
 ## Privacy
 
 The keyboard hook used for reactive typing only receives key-down codes in memory, to light the
