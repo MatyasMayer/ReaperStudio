@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using ReaperStudio.Core.Lighting;
-using ReaperStudio.Core.Protocol;
+using ReaperStudio.Core.Keyboard;
+using ReaperStudio.Core.Mouse;
 
 namespace ReaperStudio.Core.Profiles;
 
@@ -58,6 +59,8 @@ public sealed class Profile
     public SoftwareEffect Software { get; set; } = new();
     /// <summary>Overall brightness for software profiles, 0 .. 100 %.</summary>
     public int Brightness { get; set; } = 100;
+    /// <summary>What the Glorious Model D shows with this profile.</summary>
+    public MouseSettings Mouse { get; set; } = new();
 
     [JsonIgnore]
     public string Summary => Kind == ProfileKind.Hardware

@@ -2,10 +2,10 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using ReaperStudio.Core.Layout;
+using ReaperStudio.Core.Keyboard;
 using ReaperStudio.Core.Lighting;
 
-namespace ReaperStudio.Controls;
+namespace ReaperStudio.Views.Keyboard;
 
 /// <summary>Draws the Reaper's keys with their current LED colours; supports click/drag painting.</summary>
 public sealed class KeyboardView : FrameworkElement

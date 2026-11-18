@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using ReaperStudio.Core.Lighting;
 using ReaperStudio.Core.Profiles;
-using ReaperStudio.Core.Protocol;
+using ReaperStudio.Core.Keyboard;
 using ReaperStudio.Core.Rules;
 
 namespace ReaperStudio.Core.Storage;
@@ -16,6 +16,8 @@ public sealed class AppConfig
     public bool StartWithWindows { get; set; }
     public bool StartMinimized { get; set; } = true;
     public int FrameRate { get; set; } = 30;
+    /// <summary>Let profiles control the Glorious Model D Wireless.</summary>
+    public bool MouseEnabled { get; set; } = true;
 
     public Profile? FindProfile(Guid id) => Profiles.FirstOrDefault(p => p.Id == id);
 

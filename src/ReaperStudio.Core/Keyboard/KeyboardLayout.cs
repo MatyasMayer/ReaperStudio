@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace ReaperStudio.Core.Layout;
+namespace ReaperStudio.Core.Keyboard;
 
 /// <summary>A physical key: position in the vendor's 850x300 key image space, Windows VK code and LED slot.</summary>
 public sealed record KeyInfo(int Id, string Name, int X, int Y, int W, int H, int Vk, int Led)

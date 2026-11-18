@@ -1,11 +1,10 @@
-using ReaperStudio.Core.Layout;
+using ReaperStudio.Core.Keyboard;
 using ReaperStudio.Core.Lighting;
-using ReaperStudio.Core.Protocol;
 
 namespace ReaperStudio.Tests;
 
-/// <summary>Expected bytes come from tools/captures of the official CZC app.</summary>
-public class ProtocolTests
+/// <summary>Expected bytes come from tools/keyboard/captures of the official CZC app.</summary>
+public class KeyboardProtocolTests
 {
     private static byte[] Hex(string s) => Convert.FromHexString(s.Replace(" ", ""));
 

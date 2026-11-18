@@ -7,5 +7,5 @@ obj/
 source/
 
 # HID captures of the vendor app
-tools/captures/
+tools/*/captures/
 __pycache__/

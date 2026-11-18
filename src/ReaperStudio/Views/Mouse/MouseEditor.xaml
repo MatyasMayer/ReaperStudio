@@ -1,0 +1,81 @@
+<UserControl x:Class="ReaperStudio.Views.Mouse.MouseEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:ReaperStudio.Controls"
+             xmlns:ms="clr-namespace:ReaperStudio.Views.Mouse">
+    <Border Style="{StaticResource CardBorder}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="22" />
+                <ColumnDefinition Width="220" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel>
+                <TextBlock Text="Mouse · Glorious Model D Wireless" Style="{StaticResource H2}" />
+                <Border Background="{StaticResource Panel}" CornerRadius="8" HorizontalAlignment="Left" Padding="2" Margin="0,10,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="SourceFollow" Style="{StaticResource Segment}" GroupName="mouseSource" Content="Follow keyboard" Checked="Source_Checked" />
+                        <RadioButton x:Name="SourceCustom" Style="{StaticResource Segment}" GroupName="mouseSource" Content="Own colours" Checked="Source_Checked" />
+                        <RadioButton x:Name="SourceUnchanged" Style="{StaticResource Segment}" GroupName="mouseSource" Content="Don't change" Checked="Source_Checked" />
+                    </StackPanel>
+                </Border>
+                <TextBlock x:Name="SourceHint" Style="{StaticResource Muted}" Margin="2,8,0,0" />
+
+                <StackPanel x:Name="CustomPanel" Margin="0,6,0,0">
+                    <CheckBox x:Name="SeparateWireless" Content="Different look on wireless than on the cable" Margin="0,8,0,0"
+                              Checked="Separate_Changed" Unchecked="Separate_Changed" />
+                    <Border x:Name="LinkTabs" Background="{StaticResource Panel}" CornerRadius="8" HorizontalAlignment="Left" Padding="2" Margin="0,10,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="EditWired" Style="{StaticResource Segment}" GroupName="mouseLink" Content="On the cable" IsChecked="True" Checked="EditLink_Checked" />
+                            <RadioButton x:Name="EditWireless" Style="{StaticResource Segment}" GroupName="mouseLink" Content="On wireless" Checked="EditLink_Checked" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="{StaticResource Panel}" CornerRadius="8" HorizontalAlignment="Left" Padding="2" Margin="0,10,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="ModePerZone" Style="{StaticResource Segment}" GroupName="mouseMode" Content="Per zone" Checked="LookParam_Changed" />
+                            <RadioButton x:Name="ModeWhole" Style="{StaticResource Segment}" GroupName="mouseMode" Content="Whole mouse" Checked="LookParam_Changed" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel x:Name="PerZonePanel">
+                        <TextBlock Style="{StaticResource Muted}" Margin="2,8,0,0"
+                                   Text="Each zone gets its own solid colour or breathing. For rainbow, wave and the other animations use Whole mouse." />
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <RadioButton x:Name="ZoneWheel" Style="{StaticResource Segment}" GroupName="mouseZone" Content="Wheel" IsChecked="True" Checked="Zone_Checked" />
+                            <RadioButton x:Name="ZoneLeft" Style="{StaticResource Segment}" GroupName="mouseZone" Content="Left stripe" Checked="Zone_Checked" />
+                            <RadioButton x:Name="ZoneRight" Style="{StaticResource Segment}" GroupName="mouseZone" Content="Right stripe" Checked="Zone_Checked" />
+                        </StackPanel>
+                        <ComboBox x:Name="ZoneEffectBox" Margin="0,8,0,0" SelectionChanged="LookParam_Changed" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="WholePanel">
+                        <ComboBox x:Name="WholeEffectBox" Margin="0,10,0,0" SelectionChanged="LookParam_Changed" />
+                        <StackPanel x:Name="ColorSlotRow" Orientation="Horizontal" Margin="0,10,0,0">
+                            <RadioButton x:Name="Color1Slot" Style="{StaticResource Segment}" GroupName="mouseSlot" Content="Colour 1" IsChecked="True" Checked="ColorSlot_Checked" />
+                            <RadioButton x:Name="Color2Slot" Style="{StaticResource Segment}" GroupName="mouseSlot" Content="Colour 2" Checked="ColorSlot_Checked" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <c:ColorPicker x:Name="LookColor" Margin="0,10,0,0" />
+                    <TextBlock x:Name="SpeedLabel" Text="Speed" Style="{StaticResource Label}" />
+                    <Slider x:Name="SpeedSlider" Minimum="0" Maximum="100" ValueChanged="LookParam_Changed" />
+                </StackPanel>
+                <StackPanel x:Name="BrightnessPanel" Margin="0,6,0,0">
+                    <TextBlock Text="Brightness on the cable" Style="{StaticResource Label}" />
+                    <Slider x:Name="WiredBrightness" Minimum="0" Maximum="100" ValueChanged="Brightness_Changed" />
+                    <TextBlock Text="Brightness on wireless" Style="{StaticResource Label}" />
+                    <Slider x:Name="WirelessBrightness" Minimum="0" Maximum="100" ValueChanged="Brightness_Changed" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                <ms:MouseView x:Name="Preview" Height="200" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                <TextBlock x:Name="PreviewCaption" Style="{StaticResource Muted}" TextAlignment="Center" Margin="0,6,0,0" />
+                <TextBlock Style="{StaticResource Muted}" Margin="0,12,0,0"
+                           Text="Settings are stored in the mouse, so they stay after Reaper Studio closes. While charging on the cable, the mouse shows its own charging animation on the wheel." />
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>
